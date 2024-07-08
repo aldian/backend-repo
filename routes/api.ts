@@ -42,22 +42,28 @@ router.post("/update-user-data", async (req: Request, res: Response) => {
     }
 })
 
-router.get("/fetch-user-data", async (req: Request, res: Response) => {
+router.get("/fetch-user-data", tokenAuthMiddleware, async (req: Request, res: Response) => {
   const { id } = req.query;
 
-  if (!id) {
-    return res.status(400).json({ message: 'Missing required query parameter: id' });
-  }
-
   try {
-    const docRef = db.collection('users').doc(id as string);
-    const doc = await docRef.get();
+    if (id) {
+      const docRef = db.collection('users').doc(id as string);
+      const doc = await docRef.get();
 
-    if (!doc.exists) {
-      return res.status(404).json({ message: 'No such document!' });
+      if (!doc.exists) {
+        return res.status(404).json({ message: 'No such document!' });
+      }
+
+      return res.json(doc.data());
+    } else {
+      const usersSnapshot = await db.collection('users').get();
+      const usersList: { id: string; data: FirebaseFirestore.DocumentData }[] = [];
+      usersSnapshot.forEach((doc) => {
+        usersList.push({ id: doc.id, data: doc.data() });
+      });
+
+      return res.json(usersList);
     }
-
-    res.json(doc.data());
   } catch (error) {
     const errorMessage = isErrorWithMessage(error) ? error.message : 'Unknown error';
     res.status(500).json({ message: 'Failed to fetch data', error: errorMessage });
