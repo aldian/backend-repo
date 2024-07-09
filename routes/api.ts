@@ -24,6 +24,7 @@ router.post("/update-user-data", async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
   
+    const isUpdate = !!id;
     if (!id) {
       id = uuidv4();
     }
@@ -35,7 +36,11 @@ router.post("/update-user-data", async (req: Request, res: Response) => {
         name,
       });
   
-      res.json({ message: 'Data updated!', id });
+      if (isUpdate) {
+        res.status(200).json({ message: 'User updated!', id });
+      } else {
+        res.status(201).json({ message: 'User created!', id });
+      }
     } catch (error) {
         const errorMessage = isErrorWithMessage(error) ? error.message : 'Unknown error';
         res.status(500).json({ message: 'Failed to update data', error: errorMessage });
