@@ -54,12 +54,13 @@ router.get("/fetch-user-data", tokenAuthMiddleware, async (req: Request, res: Re
         return res.status(404).json({ message: 'No such document!' });
       }
 
-      return res.json(doc.data());
+      return res.json({id, ...doc.data()});
     } else {
       const usersSnapshot = await db.collection('users').get();
-      const usersList: { id: string; data: FirebaseFirestore.DocumentData }[] = [];
+      const usersList: { id: string; [key: string]: any }[] = [];
+
       usersSnapshot.forEach((doc) => {
-        usersList.push({ id: doc.id, data: doc.data() });
+        usersList.push({ id: doc.id, ...doc.data() });
       });
 
       return res.json(usersList);
