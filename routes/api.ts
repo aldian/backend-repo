@@ -1,53 +1,43 @@
-import express, { Router, Request, Response } from "express";
+import express, { Router, Request, Response, NextFunction } from "express";
 import { v4 as uuidv4 } from 'uuid';
 import db from '../firebase';
 import tokenAuthMiddleware from '../middleware/auth';
+import ApiError from '../entities/ApiError';
 
 const router = Router();
 router.use(tokenAuthMiddleware);
 router.use(express.json());
 
-// Type guard to check if error is an object with a message property
-function isErrorWithMessage(error: unknown): error is { message: string } {
-    return (
-      typeof error === "object" &&
-      error !== null &&
-      "message" in error &&
-      typeof (error as any).message === "string"
-    );
-}
+router.post("/update-user-data", async (req: Request, res: Response, next: NextFunction) => {
+  let { id, name } = req.body;
 
-router.post("/update-user-data", async (req: Request, res: Response) => {
-    let { id, name } = req.body;
+  if (!name) {
+    return next(new ApiError(400, 'Missing required fields'));
+  }
 
-    if (!name) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-  
-    const isUpdate = !!id;
-    if (!id) {
-      id = uuidv4();
-    }
-  
-    try {
-      const docRef = db.collection('users').doc(id);
-  
-      await docRef.set({
-        name,
-      });
-  
-      if (isUpdate) {
-        res.status(200).json({ message: 'User updated!', id });
-      } else {
-        res.status(201).json({ message: 'User created!', id });
-      }
-    } catch (error) {
-        const errorMessage = isErrorWithMessage(error) ? error.message : 'Unknown error';
-        res.status(500).json({ message: 'Failed to update data', error: errorMessage });
-    }
-})
+  const isUpdate = !!id;
+  if (!id) {
+    id = uuidv4();
+  }
 
-router.get("/fetch-user-data", tokenAuthMiddleware, async (req: Request, res: Response) => {
+  try {
+    const docRef = db.collection('users').doc(id);
+
+    await docRef.set({
+      name,
+    });
+
+    if (isUpdate) {
+      res.status(200).json({ message: 'User updated!', id });
+    } else {
+      res.status(201).json({ message: 'User created!', id });
+    }
+  } catch (error) {
+    next(new ApiError(500, 'Failed to update data'));
+  }
+});
+
+router.get("/fetch-user-data", async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.query;
 
   try {
@@ -56,10 +46,10 @@ router.get("/fetch-user-data", tokenAuthMiddleware, async (req: Request, res: Re
       const doc = await docRef.get();
 
       if (!doc.exists) {
-        return res.status(404).json({ message: 'No such document!' });
+        return next(new ApiError(404, 'No such document!'));
       }
 
-      return res.json({id, ...doc.data()});
+      return res.json({ id, ...doc.data() });
     } else {
       const usersSnapshot = await db.collection('users').get();
       const usersList: { id: string; [key: string]: any }[] = [];
@@ -71,8 +61,7 @@ router.get("/fetch-user-data", tokenAuthMiddleware, async (req: Request, res: Re
       return res.json(usersList);
     }
   } catch (error) {
-    const errorMessage = isErrorWithMessage(error) ? error.message : 'Unknown error';
-    res.status(500).json({ message: 'Failed to fetch data', error: errorMessage });
+    next(new ApiError(500, 'Failed to fetch data'));
   }
 });
 
