@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 import db from '../firebase';
 import ApiError from '../entities/ApiError';
 
+const collectionName = 'USERS';
+
 export const updateUserData = async (req: Request, res: Response, next: NextFunction) => {
   let { id, ...userData } = req.body; // Destructure `id` and store the rest in `userData`
   
@@ -16,7 +18,7 @@ export const updateUserData = async (req: Request, res: Response, next: NextFunc
   }
   
   try {
-    const docRef = db.collection('users').doc(id);
+    const docRef = db.collection(collectionName).doc(id);
 
     await docRef.set(userData);
   
@@ -35,7 +37,7 @@ export const fetchUserData = async (req: Request, res: Response, next: NextFunct
 
   try {
     if (id) {
-      const docRef = db.collection('users').doc(id as string);
+      const docRef = db.collection(collectionName).doc(id as string);
       const doc = await docRef.get();
 
       if (!doc.exists) {
@@ -44,7 +46,7 @@ export const fetchUserData = async (req: Request, res: Response, next: NextFunct
 
       return res.json({ id, ...doc.data() });
     } else {
-      const usersSnapshot = await db.collection('users').get();
+      const usersSnapshot = await db.collection(collectionName).get();
       const usersList: { id: string; [key: string]: any }[] = [];
 
       usersSnapshot.forEach((doc) => {
