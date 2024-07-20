@@ -14,6 +14,10 @@ endif
 #    $(error Please set ENV=[staging|prod])
 #endif
 
+ifndef SSH_STRING
+$(error Environment variable SSH_STRING is not set)
+endif
+
 # This cannot be indented or else make will include spaces in front of secret
 define get-secret
 $(shell gcloud secrets versions access latest --secret=$(1) --project=$(GCP_PROJECT_ID))
@@ -29,9 +33,32 @@ GITHUB_SHA?=latest
 LOCAL_TAG=backend-repo:$(GITHUB_SHA)
 REMOTE_TAG=gcr.io/$(GCP_PROJECT_ID)/$(LOCAL_TAG)
 
+CONTAINER_NAME=backend-repo
+
+ssh-cmd:
+	@gcloud compute ssh $(SSH_STRING) \
+		--project=$(GCP_PROJECT_ID) \
+		--zone=$(GCP_ZONE) \
+		--command="$(CMD)"
+
 build:
 	docker build -t $(LOCAL_TAG) .
 
 push:
 	docker tag $(LOCAL_TAG) $(REMOTE_TAG)
 	docker push $(REMOTE_TAG)
+
+deploy:
+	$(MAKE) ssh-cmd CMD='docker-credential-gcr configure-docker'
+	@echo "pulling new container image..."
+	$(MAKE) ssh-cmd CMD='docker pull $(REMOTE_TAG)'
+	@echo "removing old container..."
+	-$(MAKE) ssh-cmd CMD='docker container stop $(CONTAINER_NAME)'
+	-$(MAKE) ssh-cmd CMD='docker container rm $(CONTAINER_NAME)'
+	@echo "starting new container..."
+	@$(MAKE) ssh-cmd CMD='\
+		docker run -d --name=$(CONTAINER_NAME) \
+			--restart=unless-stopped \
+			-p 3000:3000 \
+			$(REMOTE_TAG) \
+			'

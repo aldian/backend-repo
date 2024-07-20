@@ -23,8 +23,10 @@ jobs:
         run: |-
           if [ ${GITHUB_REF##*/} = "master" ] || [ ${GITHUB_REF##*/} = "staging" ] || [ ${GITHUB_REF##*/} = "ci-cd" ]; then
             echo "ENV=staging" >> $GITHUB_ENV
+            echo "SSH_STRING=${{ vars.SSH_STRING_PREFIX }}-staging" >> $GITHUB_ENV
           else 
             echo "ENV=production" >> $GITHUB_ENV
+            echo "SSH_STRING=${{ vars.SSH_STRING_PREFIX }}-production" >> $GITHUB_ENV
           fi
 
       - name: Checkout
