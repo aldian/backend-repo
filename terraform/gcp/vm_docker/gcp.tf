@@ -37,7 +37,7 @@ data "google_compute_image" "cos_image" {
 
 # COMPUTE ENGINE INSTANCE
 resource "google_compute_instance" "instance" {
-  name         = "${var.app_name}-vm-${terraform.workspace}"
+  name         = "${var.vm_instance_name_prefix}-${terraform.workspace}"
   machine_type = var.gcp_machine_type
   zone         = "${var.gcp_zone}"
 
