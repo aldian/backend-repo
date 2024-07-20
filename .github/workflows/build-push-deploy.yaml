@@ -9,6 +9,9 @@ on:
     tags:
       - v\d+\.\d+\.\d+
 
+env:
+  GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+
 jobs:
   setup-build-publish-deploy:
     name: Setup, Build, Publish, and Deploy
