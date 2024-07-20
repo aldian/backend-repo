@@ -15,3 +15,7 @@ variable "gcp_zone" {
 variable "gcp_machine_type" {
   type = string
 }
+
+variable "gcp_credentials" {
+  type = string
+}

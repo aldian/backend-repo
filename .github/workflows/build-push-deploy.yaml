@@ -1,4 +1,4 @@
-name: Build and Deploy to Google Compute Engine
+name: Build and Deploy to Docker in Google Compute Engine
 
 on:
   push:
@@ -12,6 +12,8 @@ on:
 env:
   GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
   GCP_ZONE: ${{ vars.GCP_ZONE }}
+  GOOGLE_APPLICATION_CREDENTIALS: ${{ vars.GOOGLE_APPLICATION_CREDENTIALS }}
+  FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
 
 jobs:
   setup-build-publish-deploy:

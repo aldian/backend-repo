@@ -10,7 +10,7 @@ const appOptions: AppOptions = isEmulator
   ? { projectId: process.env.FIREBASE_PROJECT_ID }
   : {
       credential: applicationDefault(),
-      databaseURL: process.env.FIRESTORE_DATABASE_URL,
+      //databaseURL: process.env.FIRESTORE_DATABASE_URL,
     };
 
 initializeApp(appOptions);
