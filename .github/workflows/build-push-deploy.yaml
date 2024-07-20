@@ -41,7 +41,7 @@ jobs:
       # Build the Docker image
       - name: Build
         run: |-
-          make build
+          make -f Makefile.gcp_vm build
 
       # Push the Docker image to Google Container Registry
       - name: Publish
