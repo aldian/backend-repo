@@ -29,6 +29,26 @@ create-tf-backend-bucket:
 emulator-start:
 	firebase emulators:start --project=$(project)
 
+# This needs to be run before running `terraform init` locally, as locally, you rarely use service account,
+#   but use your own Google account
+google-login:
+	gcloud auth application-default login
+
+terraform-create-workspace:
+	cd terraform/gcp/vm_docker && \
+		terraform workspace new $(ENV)
+
+terraform-init:
+	cd terraform/gcp/vm_docker && \
+		terraform workspace select $(ENV) && \
+		terraform init -backend-config="bucket=$(GCP_PROJECT_ID)-terraform"
+
+TF_ACTION?=plan
+terraform-action:
+	@cd terraform/gcp/vm_docker && \
+		terraform workspace select $(ENV) && \
+		terraform $(TF_ACTION)
+
 GITHUB_SHA?=latest
 LOCAL_TAG=backend-repo:$(GITHUB_SHA)
 REMOTE_TAG=gcr.io/$(GCP_PROJECT_ID)/$(LOCAL_TAG)
