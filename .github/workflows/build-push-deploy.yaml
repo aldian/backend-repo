@@ -11,6 +11,7 @@ on:
 
 env:
   GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  GCP_ZONE: ${{ vars.GCP_ZONE }}
 
 jobs:
   setup-build-publish-deploy:
