@@ -51,13 +51,13 @@ jobs:
       # Build the Docker image
       - name: Build
         run: |-
-          make -f Makefile.gcp_vm build
+          make -f Makefile.gcp_vm_docker build
 
       # Push the Docker image to Google Container Registry
       - name: Publish
         run: |-
-          make push
+          make -f Makefile.gcp_vm_docker push
 
       - name: Deploy
         run: |-
-          make deploy
+          make -f Makefile.gcp_vm_docker deploy

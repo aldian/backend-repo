@@ -25,6 +25,13 @@ create-tf-backend-bucket:
 emulator-start:
 	firebase emulators:start --project=$(project)
 
+GITHUB_SHA?=latest
+LOCAL_TAG=backend-repo:$(GITHUB_SHA)
+REMOTE_TAG=gcr.io/$(GCP_PROJECT_ID)/$(LOCAL_TAG)
 
-test:
-	@echo $(GITHUB_USERNAME)
+build:
+	docker build -t $(LOCAL_TAG) .
+
+push:
+	docker tag $(LOCAL_TAG) $(REMOTE_TAG)
+	docker push $(REMOTE_TAG)
