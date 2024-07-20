@@ -21,7 +21,7 @@ jobs:
     steps:
       - name: Set ENV
         run: |-
-          if [ ${GITHUB_REF##*/} = "master" || [ ${GITHUB_REF##*/} = "staging" || [ ${GITHUB_REF##*/} = "ci-cd" ]; then
+          if [ ${GITHUB_REF##*/} = "master" ] || [ ${GITHUB_REF##*/} = "staging" ] || [ ${GITHUB_REF##*/} = "ci-cd" ]; then
             echo "ENV=staging" >> $GITHUB_ENV
           else 
             echo "ENV=production" >> $GITHUB_ENV
