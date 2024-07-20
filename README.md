@@ -71,3 +71,5 @@ It will return a json containing a new `id` like this:
 ```
 {"message":"User created!","id":"7a3d745e-6621-4a2b-9e4e-08e2bb82a274"}
 ```  
+
+## Deployment to staging
