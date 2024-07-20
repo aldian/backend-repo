@@ -1,0 +1,30 @@
+ifndef GCP_PROJECT_ID
+$(error Environment variable GCP_PROJECT_ID is not set)
+endif
+
+ifndef GCP_ZONE
+$(error Environment variable GCP_ZONE is not set)
+endif
+
+ifeq ($(filter $(ENV),staging production),)
+$(error Environment variable ENV must be set to 'staging' or 'production')
+endif
+
+#ifndef ENV
+#    $(error Please set ENV=[staging|prod])
+#endif
+
+# This cannot be indented or else make will include spaces in front of secret
+define get-secret
+$(shell gcloud secrets versions access latest --secret=$(1) --project=$(GCP_PROJECT_ID))
+endef
+
+create-tf-backend-bucket:
+    gsutil mb -p $(GCP_PROJECT_ID) gs://$(GCP_PROJECT_ID)-terraform
+
+emulator-start:
+	firebase emulators:start --project=$(project)
+
+
+test:
+	@echo $(GITHUB_USERNAME)
