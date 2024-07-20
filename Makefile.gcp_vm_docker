@@ -49,14 +49,14 @@ push:
 	docker push $(REMOTE_TAG)
 
 deploy:
-	$(MAKE) ssh-cmd CMD='docker-credential-gcr configure-docker'
+	$(MAKE) -f Makefile.gcp_vm_docker ssh-cmd CMD='docker-credential-gcr configure-docker'
 	@echo "pulling new container image..."
-	$(MAKE) ssh-cmd CMD='docker pull $(REMOTE_TAG)'
+	$(MAKE) -f Makefile.gcp_vm_docker ssh-cmd CMD='docker pull $(REMOTE_TAG)'
 	@echo "removing old container..."
-	-$(MAKE) ssh-cmd CMD='docker container stop $(CONTAINER_NAME)'
-	-$(MAKE) ssh-cmd CMD='docker container rm $(CONTAINER_NAME)'
+	-$(MAKE) -f Makefile.gcp_vm_docker ssh-cmd CMD='docker container stop $(CONTAINER_NAME)'
+	-$(MAKE) -f Makefile.gcp_vm_docker ssh-cmd CMD='docker container rm $(CONTAINER_NAME)'
 	@echo "starting new container..."
-	@$(MAKE) ssh-cmd CMD='\
+	@$(MAKE) -f Makefile.gcp_vm_docker ssh-cmd CMD='\
 		docker run -d --name=$(CONTAINER_NAME) \
 			--restart=unless-stopped \
 			-p 3000:3000 \
