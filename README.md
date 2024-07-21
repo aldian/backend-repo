@@ -81,11 +81,10 @@ Let's say your GCP project is `my-gcp-project`. You will create a VM for staging
 1. `GCP_PROJECT_ID=my-gcp-project make terraform-bootstrap`.
 2. `ENV=staging make terraform-create-workspace`. It creates the staging environment.
 3. `ENV=production make terraform-create-workspace`. It creates the production environment.
-4. `ENV=production make terraform-create-workspace`. It creates the production environment.
-5. `GCP_PROJECT_ID=my-gcp-project ENV=staging make terraform-init`. It initializes the staging environment.
-6. `GCP_PROJECT_ID=my-gcp-project ENV=production make terraform-init`. It initializes the production environment.
-7. `ENV=staging GCP_PROJECT_ID=my-gcp-project GCP_CREDENTIALS=../terraform-sa-key.json GCP_ZONE=us-central1-a SSH_STRING="john@backend-repo-vm-staging" VM_INSTANCE_NAME_PREFIX=backend-repo-vm APP_NAME=backend-repo GCP_MACHINE_TYPE=f1-micro GCP_PROJECT_ID=my-gcp-project TF_ACTION=apply make -f Makefile.gcp_vm_docker terraform-action`. This assumes that the service account file is named `terraform-sa-key.json` and located in the folder `terraform/gcp`.
-8. `ENV=staging GCP_PROJECT_ID=my-gcp-project GCP_CREDENTIALS=../terraform-sa-key.json GCP_ZONE=us-central1-a SSH_STRING="john@backend-repo-vm-production" VM_INSTANCE_NAME_PREFIX=backend-repo-vm APP_NAME=backend-repo GCP_MACHINE_TYPE=n1-standard-4 GCP_PROJECT_ID=my-gcp-project TF_ACTION=apply make -f Makefile.gcp_vm_docker terraform-action`. This assumes that the service account file is named `terraform-sa-key.json` and located in the folder `terraform/gcp`.
+4. `GCP_PROJECT_ID=my-gcp-project ENV=staging make terraform-init`. It initializes the staging environment.
+5. `GCP_PROJECT_ID=my-gcp-project ENV=production make terraform-init`. It initializes the production environment.
+6. `ENV=staging GCP_PROJECT_ID=my-gcp-project GCP_CREDENTIALS=../terraform-sa-key.json GCP_ZONE=us-central1-a SSH_STRING="john@backend-repo-vm-staging" VM_INSTANCE_NAME_PREFIX=backend-repo-vm APP_NAME=backend-repo GCP_MACHINE_TYPE=f1-micro GCP_PROJECT_ID=my-gcp-project TF_ACTION=apply make -f Makefile.gcp_vm_docker terraform-action`. It creates the staging VM. This assumes that the service account file is named `terraform-sa-key.json` and located in the folder `terraform/gcp`.
+7. `ENV=staging GCP_PROJECT_ID=my-gcp-project GCP_CREDENTIALS=../terraform-sa-key.json GCP_ZONE=us-central1-a SSH_STRING="john@backend-repo-vm-production" VM_INSTANCE_NAME_PREFIX=backend-repo-vm APP_NAME=backend-repo GCP_MACHINE_TYPE=n1-standard-4 GCP_PROJECT_ID=my-gcp-project TF_ACTION=apply make -f Makefile.gcp_vm_docker terraform-action`. It creates the production VM. This assumes that the service account file is named `terraform-sa-key.json` and located in the folder `terraform/gcp`.
 
 After running those commands, the infrastucture should be ready to receive app deployments.
 
