@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - unit-tests
     tags:
       - v\d+\.\d+\.\d+
 
@@ -23,7 +22,7 @@ jobs:
     steps:
       - name: Set ENV
         run: |-
-          if [ ${GITHUB_REF##*/} = "main" ] || [ ${GITHUB_REF##*/} = "unit-tests" ]; then
+          if [ ${GITHUB_REF##*/} = "main" ]; then
             echo "ENV=staging" >> $GITHUB_ENV
             echo "SSH_STRING=${{ vars.SSH_STRING_PREFIX }}-staging" >> $GITHUB_ENV
           else 
