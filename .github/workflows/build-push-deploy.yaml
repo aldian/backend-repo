@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - unit-tests
     tags:
       - v\d+\.\d+\.\d+
 
@@ -22,7 +23,7 @@ jobs:
     steps:
       - name: Set ENV
         run: |-
-          if [ ${GITHUB_REF##*/} = "main" ]; then
+          if [ ${GITHUB_REF##*/} = "main" ] || [ ${GITHUB_REF##*/} = "unit-tests" ]; then
             echo "ENV=staging" >> $GITHUB_ENV
             echo "SSH_STRING=${{ vars.SSH_STRING_PREFIX }}-staging" >> $GITHUB_ENV
           else 
@@ -32,6 +33,17 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '22'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Tests
+        run: npm test
 
       - id: 'auth'
         uses: 'google-github-actions/auth@v2'
