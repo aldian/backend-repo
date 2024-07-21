@@ -34,6 +34,10 @@ emulator-start:
 google-login:
 	gcloud auth application-default login
 
+terraform-bootstrap:
+	cd terraform/gcp/vm_docker && \
+		terraform init -backend-config="bucket=$(GCP_PROJECT_ID)-terraform"
+
 terraform-create-workspace:
 	cd terraform/gcp/vm_docker && \
 		terraform workspace new $(ENV)

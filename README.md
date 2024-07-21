@@ -72,4 +72,38 @@ It will return a json containing a new `id` like this:
 {"message":"User created!","id":"7a3d745e-6621-4a2b-9e4e-08e2bb82a274"}
 ```  
 
-## Deployment to staging
+## Cloud deployment
+
+### Infrastructure provisioning
+
+Terraform code is used to provision the GCP infrastructure.
+Let's say your GCP project is `my-gcp-project`. You will create a VM for staging named `backend-reop-vm-staging`, and a VM for production named `backend-repo-vm-production`. Then you need to create a GCS bucket named `my-gcp-project-terraform`, create a service account that allows the creation of VMs, and run the following commands:
+1. `GCP_PROJECT_ID=my-gcp-project make terraform-bootstrap`.
+2. `ENV=staging make terraform-create-workspace`. It creates the staging environment.
+3. `ENV=production make terraform-create-workspace`. It creates the production environment.
+4. `ENV=production make terraform-create-workspace`. It creates the production environment.
+5. `GCP_PROJECT_ID=my-gcp-project ENV=staging make terraform-init`. It initializes the staging environment.
+6. `GCP_PROJECT_ID=my-gcp-project ENV=production make terraform-init`. It initializes the production environment.
+7. `ENV=staging GCP_PROJECT_ID=my-gcp-project GCP_CREDENTIALS=../terraform-sa-key.json GCP_ZONE=us-central1-a SSH_STRING="john@backend-repo-vm-staging" VM_INSTANCE_NAME_PREFIX=backend-repo-vm APP_NAME=backend-repo GCP_MACHINE_TYPE=f1-micro GCP_PROJECT_ID=my-gcp-project TF_ACTION=apply make -f Makefile.gcp_vm_docker terraform-action`. This assumes that the service account file is named `terraform-sa-key.json` and located in the folder `terraform/gcp`.
+8. `ENV=staging GCP_PROJECT_ID=my-gcp-project GCP_CREDENTIALS=../terraform-sa-key.json GCP_ZONE=us-central1-a SSH_STRING="john@backend-repo-vm-production" VM_INSTANCE_NAME_PREFIX=backend-repo-vm APP_NAME=backend-repo GCP_MACHINE_TYPE=n1-standard-4 GCP_PROJECT_ID=my-gcp-project TF_ACTION=apply make -f Makefile.gcp_vm_docker terraform-action`. This assumes that the service account file is named `terraform-sa-key.json` and located in the folder `terraform/gcp`.
+
+After running those commands, the infrastucture should be ready to receive app deployments.
+
+### CI/CD
+
+GitHub Actions is used as the CI/CD tool. 
+Each time a code is pushed to the master branch, deployment to the staging infrastructure is started.
+Each time a code is tagged with the format `v\d+\.\d+\.\d+`, deployment to the production infrastructure is started.
+Before starting a deployment, some variables and secrets need to be set.
+
+#### Set repository variables
+* `FIREBASE_PROJECT_ID`
+* `GCP_PROJECT_ID`
+* `GCP_ZONE`. The Google data center to be used, for example, `us-central1-a`.
+* `GOOGLE_APPLICATION_CREDENTIALS`. The location of the GCP service account file. The service account should have the right to access the Firestore database.
+* `SSH_STRING_PREFIX`. If the VM instances will be `backend-repo-vm-staging` and `backend-repo-vm-production`, then `SSH_STRING_PREFIX` is `<your name>@backend-repo-vm`. If your name is John, then `SSH_STRING_PREFIX` is `john@backend-repo-vm`.
+
+#### Set repository secrets
+* `APP_SECRET_TOKEN`. To token to be used by the client to access this backend app.
+* `GCE_SA_KEY`. The content of the service account file that allows GitHub Actions to access GCP infrastructure.
+* `GOOGLE_APPLICATION_CREDENTIALS`. The content of the service account file that allows the backend app to access Firebase.
