@@ -1,6 +1,6 @@
 # backend-repo
 
-An ExpressJS example app that provides endpoints to read values from a Firestore database and write values to a Firestore database.
+A boilerplate ExpressJS backend API that has 100% test coverage, cloud infrastructure provisioning using Terraform, and CI/CD using GitHub Actions.
 This backend app will be paired with a frontend, exemplified [here](https://github.com/aldian/frontend-repo).
 
 ## Local manual test
