@@ -26,9 +26,6 @@ endef
 create-tf-backend-bucket:
     gsutil mb -p $(GCP_PROJECT_ID) gs://$(GCP_PROJECT_ID)-terraform
 
-emulator-start:
-	firebase emulators:start --project=$(project)
-
 # This needs to be run before running `terraform init` locally, as locally, you rarely use service account,
 #   but use your own Google account
 google-login:

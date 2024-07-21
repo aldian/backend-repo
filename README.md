@@ -92,8 +92,8 @@ After running those commands, the infrastucture should be ready to receive app d
 ### CI/CD
 
 GitHub Actions is used as the CI/CD tool. 
-Each time a code is pushed to the main branch, deployment to the staging infrastructure is started.
-Each time a code is tagged with the format `v\d+\.\d+\.\d+`, deployment to the production infrastructure is started.
+Each time a code is pushed to the `*-main` branches, deployment to the staging infrastructure is started.
+Each time a code is tagged with the format `*-v\d+\.\d+\.\d+`, deployment to the production infrastructure is started.
 Before starting a deployment, some variables and secrets need to be set.
 
 #### Set repository variables

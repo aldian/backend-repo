@@ -1,0 +1,51 @@
+ifndef AZ_LOCATION
+$(error Environment variable AZ_LOCATION is not set)
+endif
+
+ifndef AZ_RESOURCE_GROUP
+$(error Environment variable AZ_RESOURCE_GROUP is not set)
+endif
+
+ifndef AZ_STORAGE_ACCOUNT
+$(error Environment variable AZ_STORAGE_ACCOUNT is not set)
+endif
+
+ifndef AZ_STORAGE_CONTAINER
+$(error Environment variable AZ_STORAGE_CONTAINER is not set)
+endif
+
+ifeq ($(filter $(ENV),staging production),)
+$(error Environment variable ENV must be set to 'staging' or 'production')
+endif
+
+#ifndef ENV
+#    $(error Please set ENV=[staging|prod])
+#endif
+
+create-tf-backend-bucket:
+	az group create --name "$(AZ_RESOURCE_GROUP)" --location "$(AZ_LOCATION)"
+	az storage account create --name "$(AZ_STORAGE_ACCOUNT)" --resource-group "$(AZ_RESOURCE_GROUP)" --location "$(AZ_LOCATION)" --sku Standard_LRS
+	az storage container create --name "$(AZ_STORAGE_CONTAINER)" --account-name "$(AZ_STORAGE_ACCOUNT)"
+
+ terraform-bootstrap:
+	cd terraform/azure/vm_docker && \
+		terraform init \
+		-backend-config="resource_group_name=$(AZ_RESOURCE_GROUP)" \
+		-backend-config="storage_account_name=$(AZ_STORAGE_ACCOUNT)" \
+		-backend-config="container_name=$(AZ_STORAGE_CONTAINER)"
+
+terraform-create-workspace:
+	cd terraform/azure/vm_docker && \
+		terraform workspace new $(ENV)
+
+terraform-select-workspace:
+	cd terraform/azure/vm_docker && \
+		terraform workspace select $(ENV)
+
+terraform-init:
+	cd terraform/azure/vm_docker && \
+		terraform workspace select $(ENV) && \
+		terraform init \
+		-backend-config="resource_group_name=$(AZ_RESOURCE_GROUP)" \
+		-backend-config="storage_account_name=$(AZ_STORAGE_ACCOUNT)" \
+		-backend-config="container_name=$(AZ_STORAGE_CONTAINER)"

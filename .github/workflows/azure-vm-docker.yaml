@@ -1,0 +1,8 @@
+name: Build and Deploy to Docker in Azure Virtual Machine
+
+on:
+  push:
+    branches:
+      - azure-vm-docker-main
+    tags:
+      - azure-vm-docker-v\d+\.\d+\.\d+

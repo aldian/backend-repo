@@ -3,9 +3,9 @@ name: Build and Deploy to Docker in Google Compute Engine
 on:
   push:
     branches:
-      - main
+      - gcp-vm-docker-main
     tags:
-      - v\d+\.\d+\.\d+
+      - gcp-vm-docker-v\d+\.\d+\.\d+
 
 env:
   GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: Set ENV
         run: |-
-          if [ ${GITHUB_REF##*/} = "main" ]; then
+          if [ ${GITHUB_REF##*/} = "gcp-vm-docker-main" ]; then
             echo "ENV=staging" >> $GITHUB_ENV
             echo "SSH_STRING=${{ vars.SSH_STRING_PREFIX }}-staging" >> $GITHUB_ENV
           else 
