@@ -1,0 +1,73 @@
+name: Build and Deploy to Docker in Google Compute Engine
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - v\d+\.\d+\.\d+
+
+env:
+  GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  GCP_ZONE: ${{ vars.GCP_ZONE }}
+  GCP_CREDENTIALS: ${{ vars.GOOGLE_APPLICATION_CREDENTIALS }}
+  FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+  APP_SECRET_TOKEN: ${{ secrets.APP_SECRET_TOKEN }}
+
+jobs:
+  setup-build-publish-deploy:
+    name: Setup, Build, Publish, and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set ENV
+        run: |-
+          if [ ${GITHUB_REF##*/} = "master" ]; then
+            echo "ENV=staging" >> $GITHUB_ENV
+            echo "SSH_STRING=${{ vars.SSH_STRING_PREFIX }}-staging" >> $GITHUB_ENV
+          else 
+            echo "ENV=production" >> $GITHUB_ENV
+            echo "SSH_STRING=${{ vars.SSH_STRING_PREFIX }}-production" >> $GITHUB_ENV
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCE_SA_KEY }}'
+  
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+  
+      - name: 'Use gcloud CLI'
+        run: 'gcloud info'
+
+      # Configure Docker to use the gcloud command-line tool as a credential
+      # helper for authentication
+      - run: |-
+          gcloud --quiet auth configure-docker
+
+      - name: Create Google Application Credentials
+        run: |-
+          cat <<EOF > ${{ vars.GOOGLE_APPLICATION_CREDENTIALS }}
+          ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          EOF
+          ls -l
+
+      # Build the Docker image
+      - name: Build
+        run: |-
+          make -f Makefile.gcp_vm_docker build
+
+      # Push the Docker image to Google Container Registry
+      - name: Publish
+        run: |-
+          make -f Makefile.gcp_vm_docker push
+
+      - name: Deploy
+        run: |-
+          make -f Makefile.gcp_vm_docker deploy

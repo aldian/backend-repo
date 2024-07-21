@@ -1,0 +1,97 @@
+ifndef GCP_PROJECT_ID
+$(error Environment variable GCP_PROJECT_ID is not set)
+endif
+
+ifndef GCP_ZONE
+$(error Environment variable GCP_ZONE is not set)
+endif
+
+ifeq ($(filter $(ENV),staging production),)
+$(error Environment variable ENV must be set to 'staging' or 'production')
+endif
+
+#ifndef ENV
+#    $(error Please set ENV=[staging|prod])
+#endif
+
+ifndef SSH_STRING
+$(error Environment variable SSH_STRING is not set)
+endif
+
+# This cannot be indented or else make will include spaces in front of secret
+define get-secret
+$(shell gcloud secrets versions access latest --secret=$(1) --project=$(GCP_PROJECT_ID))
+endef
+
+create-tf-backend-bucket:
+    gsutil mb -p $(GCP_PROJECT_ID) gs://$(GCP_PROJECT_ID)-terraform
+
+emulator-start:
+	firebase emulators:start --project=$(project)
+
+# This needs to be run before running `terraform init` locally, as locally, you rarely use service account,
+#   but use your own Google account
+google-login:
+	gcloud auth application-default login
+
+terraform-bootstrap:
+	cd terraform/gcp/vm_docker && \
+		terraform init -backend-config="bucket=$(GCP_PROJECT_ID)-terraform"
+
+terraform-create-workspace:
+	cd terraform/gcp/vm_docker && \
+		terraform workspace new $(ENV)
+
+terraform-init:
+	cd terraform/gcp/vm_docker && \
+		terraform workspace select $(ENV) && \
+		terraform init -backend-config="bucket=$(GCP_PROJECT_ID)-terraform"
+
+TF_ACTION?=plan
+terraform-action:
+	@cd terraform/gcp/vm_docker && \
+		terraform workspace select $(ENV) && \
+		terraform $(TF_ACTION) \
+		-var="gcp_credentials=$(GCP_CREDENTIALS)" \
+		-var="app_name=$(APP_NAME)" \
+		-var="vm_instance_name_prefix=$(VM_INSTANCE_NAME_PREFIX)" \
+		-var="gcp_machine_type=$(GCP_MACHINE_TYPE)" \
+		-var="gcp_project_id=$(GCP_PROJECT_ID)" \
+		-var="gcp_zone=$(GCP_ZONE)"
+
+GITHUB_SHA?=latest
+LOCAL_TAG=backend-repo:$(GITHUB_SHA)
+REMOTE_TAG=gcr.io/$(GCP_PROJECT_ID)/$(LOCAL_TAG)
+
+CONTAINER_NAME=backend-repo
+
+ssh-cmd:
+	@gcloud compute ssh $(SSH_STRING) \
+		--project=$(GCP_PROJECT_ID) \
+		--zone=$(GCP_ZONE) \
+		--command="$(CMD)"
+
+build:
+	docker build -t $(LOCAL_TAG) .
+
+push:
+	docker tag $(LOCAL_TAG) $(REMOTE_TAG)
+	docker push $(REMOTE_TAG)
+
+deploy:
+	$(MAKE) -f Makefile.gcp_vm_docker ssh-cmd CMD='docker-credential-gcr configure-docker'
+	@echo "pulling new container image..."
+	$(MAKE) -f Makefile.gcp_vm_docker ssh-cmd CMD='docker pull $(REMOTE_TAG)'
+	@echo "removing old container..."
+	-$(MAKE) -f Makefile.gcp_vm_docker ssh-cmd CMD='docker container stop $(CONTAINER_NAME)'
+	-$(MAKE) -f Makefile.gcp_vm_docker ssh-cmd CMD='docker container rm $(CONTAINER_NAME)'
+	@echo "starting new container..."
+	@$(MAKE) -f Makefile.gcp_vm_docker ssh-cmd CMD='\
+		docker run -d --name=$(CONTAINER_NAME) \
+			--restart=unless-stopped \
+			-p 80:3000 \
+			-e GOOGLE_APPLICATION_CREDENTIALS=$(GCP_CREDENTIALS) \
+			-e FIREBASE_PROJECT_ID=$(FIREBASE_PROJECT_ID) \
+			-e SECRET_TOKEN=$(APP_SECRET_TOKEN) \
+			$(REMOTE_TAG) \
+			'
