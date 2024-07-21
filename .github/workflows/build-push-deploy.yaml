@@ -56,7 +56,7 @@ jobs:
       - name: Create Google Application Credentials
         run: |-
           cat <<EOF > ${{ vars.GOOGLE_APPLICATION_CREDENTIALS }}
-          ${{ secrets.GCE_SA_KEY }}
+          ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
           EOF
           ls -l
 
