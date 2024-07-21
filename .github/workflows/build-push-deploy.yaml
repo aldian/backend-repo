@@ -54,7 +54,8 @@ jobs:
 
       - name: Create Google Application Credentials
         run: |-
-          echo ${{ secrets.GCE_SA_KEY }} > ${{ vars.GOOGLE_APPLICATION_CREDENTIALS }}
+          echo """${{ secrets.GCE_SA_KEY }}
+          """ > ${{ vars.GOOGLE_APPLICATION_CREDENTIALS }}
 
       # Build the Docker image
       - name: Build
