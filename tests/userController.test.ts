@@ -160,4 +160,3 @@ describe('userController', () => {
     });
   });
 });
-
