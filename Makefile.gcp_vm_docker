@@ -85,7 +85,7 @@ deploy:
 	@$(MAKE) -f Makefile.gcp_vm_docker ssh-cmd CMD='\
 		docker run -d --name=$(CONTAINER_NAME) \
 			--restart=unless-stopped \
-			-p 3000:3000 \
+			-p 80:3000 \
 			-e GOOGLE_APPLICATION_CREDENTIALS=$(GCP_CREDENTIALS) \
 			-e FIREBASE_PROJECT_ID=$(FIREBASE_PROJECT_ID) \
 			-e SECRET_TOKEN=$(APP_SECRET_TOKEN) \
