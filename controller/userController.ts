@@ -36,6 +36,7 @@ export const updateUserData = async (req: Request, res: Response, next: NextFunc
       res.status(201).json({ message: USER_CREATED, id });
     }
   } catch (error) {
+    console.log("Error: ", error);
     next(new ApiError(500, FAILED_TO_UPDATE_DATA));
   }
 };
@@ -64,6 +65,7 @@ export const fetchUserData = async (req: Request, res: Response, next: NextFunct
       return res.json(usersList);
     }
   } catch (error) {
+    console.log("Error: ", error);
     next(new ApiError(500, FAILED_TO_FETCH_DATA));
   }
 };
