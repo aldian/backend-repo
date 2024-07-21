@@ -1,8 +1,8 @@
 # backend-repo
 
 A boilerplate ExpressJS backend API that has 100% test coverage, cloud infrastructure provisioning using Terraform, and CI/CD using GitHub Actions.
-The Terraform code installs the app to a VM in a Docker container.
-This backend app will be paired with a frontend, exemplified [here](https://github.com/aldian/frontend-repo).
+The Terraform code installs the app to a VM in a Docker container. It currently supports GCP's GCE VM.
+This backend app is paired with a frontend, exemplified [here](https://github.com/aldian/frontend-repo).
 
 ## Local manual test
 
